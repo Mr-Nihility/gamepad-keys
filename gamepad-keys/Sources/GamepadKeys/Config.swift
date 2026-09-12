@@ -23,6 +23,7 @@ struct StickConfig: Codable, Equatable {
 struct Profile: Codable, Identifiable, Equatable {
     var name: String
     var buttons: [String: String] = [:]
+    var repeatEnabled = false
     var leftStick: StickConfig?
     var rightStick: StickConfig?
 
@@ -109,6 +110,7 @@ extension Profile {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decodeIfPresent(String.self, forKey: .name) ?? "Основний"
+        repeatEnabled = try container.decodeIfPresent(Bool.self, forKey: .repeatEnabled) ?? false
         buttons = try container.decodeIfPresent([String: String].self, forKey: .buttons) ?? [:]
         leftStick = try container.decodeIfPresent(StickConfig.self, forKey: .leftStick)
         rightStick = try container.decodeIfPresent(StickConfig.self, forKey: .rightStick)

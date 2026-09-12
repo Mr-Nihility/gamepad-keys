@@ -7,6 +7,7 @@ final class MappingWindowController: NSWindowController, NSWindowDelegate, NSTex
 
     private let profilePopup = NSPopUpButton()
     private let nameField = NSTextField()
+    private let repeatCheckbox = NSButton(checkboxWithTitle: "Повторювати при утриманні", target: nil, action: nil)
     private let deleteButton = NSButton()
     private let controllerLabel = NSTextField(labelWithString: "")
     private let permissionBar = NSStackView()
@@ -239,6 +240,10 @@ final class MappingWindowController: NSWindowController, NSWindowDelegate, NSTex
     // MARK: - Рядки
 
     private func buildRows() {
+        repeatCheckbox.target = self
+        repeatCheckbox.action = #selector(repeatChanged)
+        repeatCheckbox.toolTip = "Повторювати клавіші й кліки миші 10 разів на секунду для поточного профілю"
+        contentStack.addArrangedSubview(repeatCheckbox)
         contentStack.addArrangedSubview(sectionHeader("Кнопки"))
         for name in Mapper.buttonNames {
             addRow(for: .button(name))
@@ -368,6 +373,7 @@ final class MappingWindowController: NSWindowController, NSWindowDelegate, NSTex
 
     /// Повне оновлення: профілі, дозвіл, усі призначення.
     func refresh() {
+        repeatCheckbox.state = state.config.active.repeatEnabled ? .on : .off
         profilePopup.removeAllItems()
         for profile in state.config.profiles {
             profilePopup.addItem(withTitle: profile.name)
@@ -439,6 +445,10 @@ final class MappingWindowController: NSWindowController, NSWindowDelegate, NSTex
     }
 
     // MARK: - Дії
+
+    @objc private func repeatChanged() {
+        state.setRepeatEnabled(repeatCheckbox.state == .on)
+    }
 
     @objc private func profileChanged() {
         guard let name = profilePopup.titleOfSelectedItem else { return }

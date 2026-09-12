@@ -118,6 +118,7 @@ final class AppState {
 
     private func rebuild() {
         sender.releaseAll()
+        sender.repeatEnabled = config.active.repeatEnabled
         mappers.forEach { $0.reset() }
         mappers.removeAll()
         activeControls.removeAll()
@@ -211,6 +212,12 @@ final class AppState {
     func actionTitle(for slot: Slot) -> String? {
         guard let text = key(for: slot) else { return nil }
         return Action(text)?.title ?? "\(text) ⁉️"
+    }
+
+    func setRepeatEnabled(_ enabled: Bool) {
+        var profile = config.active
+        profile.repeatEnabled = enabled
+        update(profile)
     }
 
     // MARK: - Режим стіка
@@ -331,6 +338,8 @@ final class AppState {
     private func update(_ profile: Profile) {
         config.profiles[config.activeIndex] = profile
         config.save()
+        sender.releaseAll()
+        sender.repeatEnabled = profile.repeatEnabled
         mappers.forEach { $0.apply(profile) }
         onChange?()
     }

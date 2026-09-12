@@ -12,6 +12,12 @@ import Foundation
 /// доки друга ще натиснута.
 final class KeySender {
     private var held: [CGKeyCode: (count: Int, flags: CGEventFlags)] = [:]
+    private let postEvent: (CGEvent) -> Void
+
+    init(postEvent: @escaping (CGEvent) -> Void = { $0.post(tap: .cghidEventTap) }) {
+        self.postEvent = postEvent
+    }
+
     private let source = CGEventSource(stateID: .hidSystemState)
     private let lock = NSLock()
     private var warnedAboutPermission = false
@@ -60,7 +66,17 @@ final class KeySender {
         held.removeAll()
     }
 
-    private func post(code: CGKeyCode, flags: CGEventFlags, down: Bool) {
+    /// Повтор не збільшує лічильник фізично затиснених призначень.
+    func repeatHeld() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !isPaused else { return }
+        for (code, current) in held {
+            post(code: code, flags: current.flags, down: true, repeating: true)
+        }
+    }
+
+    private func post(code: CGKeyCode, flags: CGEventFlags, down: Bool, repeating: Bool = false) {
         let name = KeyCombo.names[code] ?? String(format: "0x%02X", code)
 
         if down, !AXIsProcessTrusted() {
@@ -77,7 +93,8 @@ final class KeySender {
             return
         }
         event.flags = flags
-        event.post(tap: .cghidEventTap)
+        event.setIntegerValueField(.keyboardEventAutorepeat, value: repeating ? 1 : 0)
+        postEvent(event)
         log("⌨️  \(name) \(down ? "↓" : "↑")")
     }
 }

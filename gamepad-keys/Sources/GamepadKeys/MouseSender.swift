@@ -11,10 +11,16 @@ final class MouseSender {
     /// Пікселів за секунду при повному відхиленні стіка.
     static let defaultSpeed: Double = 900
 
+    private let postEvent: (CGEvent) -> Void
+
+    init(postEvent: @escaping (CGEvent) -> Void = { $0.post(tap: .cghidEventTap) }) {
+        self.postEvent = postEvent
+    }
+
     private let source = CGEventSource(stateID: .hidSystemState)
     private let lock = NSLock()
 
-    private var held: Set<MouseButton> = []
+    private var held: [MouseButton: Int] = [:]
     private var velocity = CGVector(dx: 0, dy: 0)
     private var speed = CGFloat(MouseSender.defaultSpeed)
     private var remainder = CGVector(dx: 0, dy: 0)
@@ -91,7 +97,7 @@ final class MouseSender {
         guard let current = CGEvent(source: nil)?.location else { return }
 
         let target = CGPoint(x: current.x + stepX, y: current.y + stepY)
-        let dragging = held.first
+        let dragging = held.keys.first
         let type: CGEventType
         switch dragging {
         case .left:   type = .leftMouseDragged
@@ -110,37 +116,47 @@ final class MouseSender {
         // ці поля, а не абсолютну позицію.
         event.setIntegerValueField(.mouseEventDeltaX, value: Int64(stepX))
         event.setIntegerValueField(.mouseEventDeltaY, value: Int64(stepY))
-        event.post(tap: .cghidEventTap)
+        postEvent(event)
     }
 
     // MARK: - Кнопки
 
     func press(_ button: MouseButton) {
         lock.lock()
-        let alreadyHeld = held.contains(button) || isPaused
-        if !alreadyHeld { held.insert(button) }
-        lock.unlock()
-
-        guard !alreadyHeld else { return }
-        post(button, down: true)
+        defer { lock.unlock() }
+        guard !isPaused else { return }
+        let count = (held[button] ?? 0) + 1
+        held[button] = count
+        if count == 1 { post(button, down: true) }
     }
 
     func release(_ button: MouseButton) {
         lock.lock()
-        let wasHeld = held.remove(button) != nil
-        lock.unlock()
-
-        guard wasHeld else { return }
-        post(button, down: false)
+        defer { lock.unlock() }
+        guard let count = held[button] else { return }
+        if count > 1 {
+            held[button] = count - 1
+        } else {
+            held[button] = nil
+            post(button, down: false)
+        }
     }
 
     func releaseAll() {
         lock.lock()
-        let buttons = held
+        defer { lock.unlock() }
+        for button in held.keys { post(button, down: false) }
         held.removeAll()
-        lock.unlock()
+    }
 
-        for button in buttons { post(button, down: false) }
+    func repeatHeld() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !isPaused else { return }
+        for button in held.keys {
+            post(button, down: false)
+            post(button, down: true)
+        }
     }
 
     private func post(_ button: MouseButton, down: Bool) {
@@ -163,7 +179,7 @@ final class MouseSender {
         else { return }
 
         event.setIntegerValueField(.mouseEventClickState, value: 1)
-        event.post(tap: .cghidEventTap)
+        postEvent(event)
         log("🖱  \(button.title) \(down ? "↓" : "↑")")
     }
 

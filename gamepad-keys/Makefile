@@ -70,3 +70,9 @@ cert:
 	  -k ~/Library/Keychains/login.keychain-db /tmp/gpk-cert.pem
 	@rm -f /tmp/gpk-key.pem /tmp/gpk-cert.pem /tmp/gpk.p12
 	@echo "сертифікат «$(CERT_NAME)» створено — далі make install підписує ним"
+
+.PHONY: test
+test:
+	mkdir -p .build
+	swiftc -o .build/repeat-tests Sources/GamepadKeys/{Action,KeyCombo,Config,KeySender,MouseSender,InputSender}.swift Tests/RepeatTests.swift
+	.build/repeat-tests
