@@ -1,35 +1,35 @@
 # GamepadKeys
 
-**Керуйте клавіатурою та мишею з геймпада на macOS.**
+**Control your keyboard and mouse with a gamepad on macOS.**
 
-GamepadKeys живе в рядку меню та перетворює кнопки й рухи стіків на системні
-події клавіатури та миші. Підходить для браузерних ігор, які не підтримують
-Gamepad API, та застосунків із клавіатурним керуванням.
+GamepadKeys lives in the menu bar and turns controller buttons and stick movements
+into system keyboard and mouse events. Use it with browser games that lack Gamepad
+API support or apps designed for keyboard input.
 
-Написаний на Swift та AppKit. Без сторонніх пакетів і драйверів ядра.
-Інтерфейс українською.
+Built with Swift and AppKit. No third-party packages or kernel drivers.
+The app interface is currently in Ukrainian.
 
-## Можливості
+## Features
 
-- Призначення клавіш, комбінацій на кшталт `cmd+shift+a` та кнопок миші.
-- Стіки як WASD, стрілки або рух курсора з налаштуванням швидкості й мертвої зони.
-- Повторення при утриманні: приблизно 10 повторів на секунду, окрема галочка для кожного профілю.
-- Створення, копіювання та перемикання профілів із автоматичним збереженням.
-- Фоновий прийом вводу, індикатори активності та журнал подій.
-- Передавання зміщень миші для браузерних ігор із Pointer Lock.
-- Необов’язковий запуск при вході в систему.
+- Map controller buttons to keys, shortcuts such as `cmd+shift+a`, and mouse buttons.
+- Use sticks for WASD, arrow keys, or cursor movement with adjustable speed and dead zones.
+- Repeat held inputs approximately 10 times per second, enabled separately for each profile.
+- Create, duplicate, and switch profiles with automatic saving.
+- Receive input in the background, with activity indicators and an event log.
+- Send mouse movement deltas for browser games using Pointer Lock.
+- Optionally launch at login.
 
-## Вимоги
+## Requirements
 
-- macOS 13 або новіша.
+- macOS 13 or later.
 - Command Line Tools: `xcode-select --install`.
-- Геймпад, який macOS розпізнає через `GameController` як розширений контролер.
-- Дозвіл **«Універсальний доступ»** для надсилання подій в інші застосунки.
+- A gamepad recognized by macOS through `GameController` as an extended gamepad.
+- **Accessibility** permission to send input to other apps.
 
-Повний Xcode для збірки не потрібен. Доступність окремих кнопок залежить
-від контролера та macOS; універсальна сумісність з усіма іграми не гарантується.
+A full Xcode installation is not required. Button availability depends on the
+controller and macOS; compatibility with every game is not guaranteed.
 
-## Швидкий старт
+## Quick start
 
 ```sh
 git clone https://github.com/Mr-Nihility/gamepad-keys.git
@@ -37,74 +37,75 @@ cd gamepad-keys/gamepad-keys
 make run
 ```
 
-`make run` збирає застосунок, встановлює його в `/Applications/GamepadKeys.app`
-і запускає. При повторному встановленні поточний екземпляр зупиняється.
+`make run` builds the app, installs it at `/Applications/GamepadKeys.app`, and
+launches it. Reinstalling stops any currently running instance.
 
-1. Підключіть геймпад через Bluetooth або USB.
-2. Відкрийте **Системні налаштування → Конфіденційність і безпека → Універсальний доступ** та надайте дозвіл GamepadKeys.
-3. Натисніть іконку геймпада в рядку меню → **«Розкладка…»**.
-4. Виберіть кнопку призначення та натисніть потрібну клавішу. Меню **⌄** призначає кнопку миші.
-5. Перейдіть у гру або інший застосунок і перевірте керування.
+1. Connect your gamepad via Bluetooth or USB.
+2. Open **System Settings → Privacy & Security → Accessibility** and grant GamepadKeys access.
+3. Click the gamepad icon in the menu bar → **«Розкладка…»** (Mapping).
+4. Click a key assignment and press the desired key. Use the **⌄** menu to assign a mouse button.
+5. Switch to your game or another app and try the controls.
 
-Початкова розкладка: лівий стік — WASD, правий — курсор, `A` — пробіл.
-Увімкніть **«Повторювати при утриманні»**, якщо потрібні повторні натискання.
-Без галочки клавіша залишається затисненою до відпускання кнопки геймпада.
+The default mapping uses the left stick for WASD, the right stick for the cursor,
+and `A` for Space. Enable **«Повторювати при утриманні»** (Repeat while held) for
+repeated input. With this option disabled, a mapped key stays down until you
+release the controller button.
 
-### Підпис після перезбірки
+### Signing after a rebuild
 
-Запускайте копію з `/Applications`: шлях і підпис впливають на дозвіл доступу.
-Без постійного підпису після перезбірки може знадобитися видалити застосунок
-зі списку дозволів кнопкою **−** і додати його знову кнопкою **+**.
+Launch the copy in `/Applications`: the app's path and signing identity affect
+Accessibility permission. Without a stable signature, you may need to remove the
+app from the permission list with **−** and add it again with **+** after rebuilding.
 
-Необов’язково виконайте `make cert`, потім `make install`, щоб використовувати
-стабільний локальний підпис. `make cert` створює самопідписаний сертифікат
-і додає його до login Keychain; система може попросити пароль.
+Optionally run `make cert`, then `make install`, to use a stable local signature.
+`make cert` creates a self-signed certificate and adds it to your login Keychain;
+macOS may prompt for your password.
 
-## Розробка та перевірки
+## Development and testing
 
-Усі команди виконуйте з вкладеної теки `gamepad-keys/`:
+Run all commands from the nested `gamepad-keys/` directory:
 
-| Команда | Призначення |
+| Command | Purpose |
 | --- | --- |
-| `swift build` | Збірка для розробки |
-| `make app` | Release-бандл у `.build/GamepadKeys.app` |
-| `make install` | Збірка та встановлення в `/Applications` |
-| `make run` | Встановлення та запуск |
-| `make test` | Перевірки повторення й сумісності конфігів |
-| `make icon` | Генерація іконки |
-| `make clean` | Видалення результатів збірки |
+| `swift build` | Build for development |
+| `make app` | Create a release bundle at `.build/GamepadKeys.app` |
+| `make install` | Build and install in `/Applications` |
+| `make run` | Install and launch |
+| `make test` | Check input repeat and configuration compatibility |
+| `make icon` | Generate the app icon |
+| `make clean` | Remove build output |
 
-Тести перехоплюють події до надсилання в macOS і не змінюють користувацькі
-файли конфігурації та журналу. Для перевірки реального вводу відкрийте
-[`test-keys.html`](gamepad-keys/test-keys.html) у браузері та використайте геймпад.
+Tests intercept events before they reach macOS and leave your configuration and
+log files untouched. To check actual input, open
+[`test-keys.html`](gamepad-keys/test-keys.html) in a browser and use your gamepad.
 
-## Конфігурація та діагностика
+## Configuration and troubleshooting
 
-- Конфігурація: `~/.config/gamepad-keys/config.json`.
-- Журнал: `~/.config/gamepad-keys/log.txt`, перезаписується при запуску.
-- **«Тест клавіші»** у вікні надсилає пробіл для перевірки дозволу без геймпада.
+- Configuration: `~/.config/gamepad-keys/config.json`.
+- Log: `~/.config/gamepad-keys/log.txt`, overwritten on launch.
+- **«Тест клавіші»** (Test key) in the mapping window sends Space to check permission without a gamepad.
 
-Перед ручним редагуванням конфігурації закрийте застосунок, щоб автоматичне
-збереження не перезаписало зміни. Деталі профілів, назв кнопок і формату JSON —
-у [посібнику користувача](gamepad-keys/README.md).
+Quit the app before editing its configuration manually so automatic saving does
+not overwrite your changes. See the [user guide in Ukrainian](gamepad-keys/README.md)
+for profile settings, button names, and the JSON format.
 
-## Як долучитися
+## Contributing
 
-Повідомлення про помилки та pull request вітаються.
+Bug reports and pull requests are welcome.
 
-1. Створіть fork і окрему гілку для зміни.
-2. Дотримуйтеся [правил репозиторію](AGENTS.md) та наявного стилю Swift.
-3. Виконайте `make test` і `swift build`; для змін вводу перевірте поведінку з геймпадом.
-4. У PR опишіть проблему, зміну та результати перевірок. Для змін інтерфейсу додайте скриншот.
+1. Fork the repository and create a branch for your change.
+2. Follow the [repository guidelines](AGENTS.md) and existing Swift style.
+3. Run `make test` and `swift build`; check input changes with a gamepad.
+4. Describe the problem, your change, and verification results in the PR. Include screenshots for UI changes.
 
-У [повідомленні про помилку](https://github.com/Mr-Nihility/gamepad-keys/issues)
-вкажіть версію macOS, модель контролера, спосіб підключення, кроки відтворення
-та відповідний фрагмент журналу. Перегляньте його перед публікацією: він містить
-натискання та призначення клавіш.
+When [reporting a bug](https://github.com/Mr-Nihility/gamepad-keys/issues), include
+your macOS version, controller model, connection method, reproduction steps, and
+a relevant log excerpt. Review logs before posting: they contain button presses
+and key assignments.
 
-Код застосунку — у `gamepad-keys/Sources/GamepadKeys/`, перевірки —
-у `gamepad-keys/Tests/`, генератор іконки — у `gamepad-keys/Tools/`.
+App source lives in `gamepad-keys/Sources/GamepadKeys/`, checks in
+`gamepad-keys/Tests/`, and the icon generator in `gamepad-keys/Tools/`.
 
-## Ліцензія
+## License
 
-Файл `LICENSE` ще не додано; ліцензію проєкту поки не визначено.
+A `LICENSE` file has not been added yet; the project license has not been selected.
