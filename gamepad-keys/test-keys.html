@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Перевірка клавіш</title>
+<style>
+  :root { color-scheme: dark light; }
+  body {
+    font: 16px/1.5 -apple-system, system-ui, sans-serif;
+    margin: 0; padding: 24px;
+    background: #16181d; color: #e6e8ee;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p.hint { margin: 0 0 20px; color: #8b90a0; font-size: 14px; }
+  #last {
+    font: 600 64px/1.1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: 28px; border-radius: 12px;
+    background: #1e2129; border: 1px solid #2c3039;
+    text-align: center; min-height: 72px;
+    transition: background .12s;
+  }
+  #last.hit { background: #1d3b2a; border-color: #2f6b48; }
+  #count { margin: 14px 0 20px; color: #8b90a0; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td {
+    text-align: left; padding: 6px 10px;
+    border-bottom: 1px solid #2c3039;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  th { color: #8b90a0; font-weight: 500; }
+  td.down { color: #6ee7a0; }
+  td.up { color: #8b90a0; }
+</style>
+</head>
+<body>
+
+<h1>Перевірка клавіш</h1>
+<p class="hint">
+  Клацніть сюди, щоб сторінка отримала фокус, потім натискайте кнопки геймпада.
+  Якщо тут порожньо, а в журналі GamepadKeys видно «⌨️ …» — клавіші не доходять
+  до браузера. Якщо тут щось з'являється — мапінг працює, і справа в самій грі.
+</p>
+
+<div id="last">—</div>
+<div id="count">подій: 0</div>
+
+<table>
+  <thead>
+    <tr><th>час</th><th>тип</th><th>code</th><th>key</th><th>isTrusted</th><th>repeat</th></tr>
+  </thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<script>
+  const last = document.getElementById('last');
+  const count = document.getElementById('count');
+  const rows = document.getElementById('rows');
+  let total = 0;
+
+  function record(event, kind) {
+    // Пробіл гортає сторінку, стрілки теж — заважає дивитись список.
+    event.preventDefault();
+
+    total++;
+    count.textContent = 'подій: ' + total;
+
+    if (kind === 'down') {
+      last.textContent = event.code || '?';
+      last.classList.add('hit');
+    } else {
+      last.classList.remove('hit');
+    }
+
+    const time = new Date().toTimeString().slice(0, 8);
+    const row = document.createElement('tr');
+    row.innerHTML =
+      '<td>' + time + '</td>' +
+      '<td class="' + kind + '">' + (kind === 'down' ? '↓' : '↑') + '</td>' +
+      '<td>' + (event.code || '') + '</td>' +
+      '<td>' + JSON.stringify(event.key || '') + '</td>' +
+      '<td>' + event.isTrusted + '</td>' +
+      '<td>' + (event.repeat || false) + '</td>';
+    rows.prepend(row);
+
+    while (rows.children.length > 40) rows.lastChild.remove();
+  }
+
+  window.addEventListener('keydown', e => record(e, 'down'));
+  window.addEventListener('keyup', e => record(e, 'up'));
+</script>
+
+</body>
+</html>
